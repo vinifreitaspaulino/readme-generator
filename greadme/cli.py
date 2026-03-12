@@ -27,8 +27,10 @@ def main():
 
     print("Varrendo projeto...") #scanner.py
     context = scanner.scan(args.path)
-    print(context)
+    #print(context)
     print(context["structure"])
+    print(context["type"])
+    print(context["dependencies"])
 
     print("Montando o prompt...") #builder.py
     print("Chamando a IA...") #ai.py
