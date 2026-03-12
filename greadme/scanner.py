@@ -2,38 +2,97 @@ from pathlib import Path
 import json
 import tomllib  # pip install toml
 import xml.etree.ElementTree as ET  # built-in for XML parsing
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Set
 
-IGNORE_DIRS = {
+IGNORE_DIRS: Set[str] = {
+    "assets", "public",
+
     # Python
     "__pycache__", ".venv", "venv", "env", ".env",
-    "*.egg-info", ".mypy_cache", ".pytest_cache", ".ruff_cache",
-    # Node
+    ".egg-info", ".mypy_cache", ".pytest_cache", ".ruff_cache",
+    ".tox", ".nox", ".hypothesis", ".coverage",
+
+    # Node / JS / TS
     "node_modules", ".next", ".nuxt", "dist", "build",
-    # Git / CI
-    ".git", ".github", ".gitlab",
-    # IDEs
-    ".vscode", ".idea",
+    ".cache", ".turbo", "coverage",
+
+    # Rust
+    "target",
+
+    # Go
+    "vendor", "bin",
+
+    # Java / Kotlin / Gradle / Maven
+    ".gradle", ".mvn", "out",
+
+    # Ruby
+    ".bundle",
+
+    # C# / .NET
+    "obj", "packages",
+
+    # Git / Version Control / CI
+    ".git", ".github", ".gitlab", ".svn", ".hg",
+    ".circleci", ".travis",
+
+    # IDEs / Editors
+    ".vscode", ".idea", ".eclipse", ".settings",
+    ".metadata",
+
+    # Databases / Caches
+    ".db", "db", "data", ".redis", ".mongo",
+
+    # Logs / Temp / Misc
+    ".DS_Store", "tmp", "temp", "logs", "log",
+    "thumbs", "cache", "downloads",
+
+    # Examples / Fixtures
+    "examples", "example", "fixtures",
+}
+
+IGNORE_EXTENSIONS: Set[str] = {
+    # Images / Media
+    ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".ico", ".svg", ".webp",
+    ".mp3", ".mp4", ".wav", ".avi", ".mov", ".mkv",
+
+    # Documents / Archives
+    ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+    ".zip", ".tar", ".gz", ".bz2", ".7z", ".rar",
+
+    # Binaries / Compiled
+    ".pyc", ".pyo", ".pyd", ".class", ".jar", ".war", ".ear",
+    ".exe", ".dll", ".so", ".dylib", ".o", ".a", ".obj", ".lib",
+    ".bin", ".dat", ".db", ".sqlite", ".sqlite3",
+
+    # Logs / Temp / Backups
+    ".log", ".tmp", ".bak", ".swp", ".lock",
+
     # Misc
-    ".DS_Store", "tmp", "temp", "logs",
-}
-
-IGNORE_EXTENSIONS = {
-    # Binaries
-    ".png", ".jpg", ".jpeg", ".gif", ".ico", ".svg",
-    ".pdf", ".zip", ".tar", ".gz",
-    # Comp
-    ".pyc", ".pyo", ".exe", ".dll", ".so"
-
-}
-
-IGNORE_FILES = {
-    "package-lock.json",
-    "yarn.lock",
-    "poetry.lock",
-    "uv.lock",
     ".DS_Store",
-    "Thumbs.db",
+}
+
+IGNORE_FILES: Set[str] = {
+    # Lock files
+    "package-lock.json", "yarn.lock", "pnpm-lock.yaml",
+    "poetry.lock", "Pipfile.lock", "uv.lock",
+    "Cargo.lock", "go.sum", "Gemfile.lock", "mix.lock",
+
+    # Git / Editor config
+    ".gitignore", ".gitattributes", ".gitmodules",
+    ".editorconfig", ".prettierrc", ".eslintrc", ".eslintignore",
+    ".stylelintrc", "tsconfig.json", "jsconfig.json",
+
+    # Licenses / Docs
+    "LICENSE", "LICENSE.txt", "README.md", "README.rst",
+    "CHANGELOG.md", "CONTRIBUTING.md",
+
+    # OS-specific
+    ".DS_Store", "Thumbs.db", "desktop.ini",
+    ".npmrc", ".yarnrc", ".env.local", ".env.example",
+
+    # Coverage / Test config
+    "coverage.lcov", ".coveragerc", "jest.config.js",
+    "setup.cfg", "tox.ini", "noxfile.py",
 }
 
 def scan(path: Path) -> dict:
