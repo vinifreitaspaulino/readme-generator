@@ -95,14 +95,77 @@ IGNORE_FILES: Set[str] = {
     "setup.cfg", "tox.ini", "noxfile.py",
 }
 
+READABLE_EXTENSIONS: Set[str] = {
+    ".py", ".pyw",
+    ".js", ".ts", ".jsx", ".tsx", ".mjs", ".cjs",
+    ".html", ".htm", ".css", ".scss", ".sass", ".less", ".vue", ".svelte",
+    ".rs",
+    ".go",
+    ".java", ".kt", ".kts", ".gradle",
+    ".cs", ".vb", ".fs",
+    ".c", ".cpp", ".cc", ".cxx", ".h", ".hpp", ".hxx",
+    ".rb", ".rake", ".gemspec",
+    ".php",
+    ".swift", ".m", ".mm",
+    ".sh", ".bash", ".zsh", ".fish", ".ps1", ".bat", ".cmd",
+    ".gml", ".yy",
+    ".lua",
+    ".r", ".R",
+    ".dart",
+    ".ex", ".exs", ".erl", ".hrl",
+    ".hs", ".lhs",
+    ".scala", ".sbt",
+    ".zig",
+    ".json", ".toml", ".yaml", ".yml", ".xml", ".ini", ".cfg", ".conf",
+    ".env", ".properties",
+    ".md", ".rst", ".txt", ".adoc",
+    ".sql",
+    ".dockerfile",
+}
+
 def scan(path: Path) -> dict:
+    load_gitignore_into_ignores(path)
     return {
         "name": get_name(path),
-        "structure": get_tree(path),
         "type": get_project_type(path),
+        "structure": get_tree(path),
         "dependencies": get_dependencies(path),
+        "files": read_main_files(path),
         # "description": get_description(path) 
     }
+
+def load_gitignore_into_ignores(root: Path) -> None:
+    gitignore = root / ".gitignore"
+    if not gitignore.exists():
+        return
+    
+    for line in read_text_safe(gitignore).splitlines():
+        line = line.strip()
+        
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("!"):
+            continue
+        line = line.lstrip("/") 
+        if line.startswith("*."):
+            IGNORE_EXTENSIONS.add(line[1:])
+            continue
+        name = line.rstrip("/")
+
+        # skip complex patterns with * in the middle
+        if "*" in name:
+            continue
+        if name.startswith("."):
+            IGNORE_EXTENSIONS.add(name)
+
+        IGNORE_DIRS.add(name)
+        IGNORE_FILES.add(name)
+
+def is_in_ignored_dir(file: Path, root: Path) -> bool:
+    for parent in file.relative_to(root).parts[:-1]:
+        if parent in IGNORE_DIRS:
+            return True
+    return False
 
 def should_ignore(item: Path) -> bool:
     if item.name in IGNORE_DIRS and item.is_dir():
@@ -115,6 +178,13 @@ def should_ignore(item: Path) -> bool:
         return True
     return False
 
+def read_text_safe(file: Path) -> str:
+    for encoding in ["utf-8", "utf-16", "latin-1"]:
+        try:
+            return file.read_text(encoding=encoding)
+        except (UnicodeDecodeError, UnicodeError):
+            continue
+    return ""
 
 def get_name(path: Path) -> str:
     return path.resolve().name
@@ -177,18 +247,17 @@ def get_dependencies(path: Path) -> List[Dict[str, str]]:
             req_txt = path / "requirements.txt"
             if req_txt.exists():
                 try:
-                    content = req_txt.read_text(encoding="utf-8")
-                except UnicodeDecodeError:
-                    content = req_txt.read_text(encoding="utf-16")
-                print(req_txt)
-                deps = [
-                    {
-                        "name": line.strip().split("==")[0],
-                        "version": line.strip().split("==")[1] if "==" in line else "*"
-                    }
-                    for line in content.splitlines()
-                    if line.strip() and not line.startswith("#")
-                ]
+                    content = read_text_safe(req_txt)
+                    deps = [
+                        {
+                            "name": line.strip().split("==")[0],
+                            "version": line.strip().split("==")[1] if "==" in line else "*"
+                        }
+                        for line in content.splitlines()
+                        if line.strip() and not line.startswith("#")
+                    ]
+                except Exception:
+                    pass
 
     elif project_type == "node":
         pkg_json = path / "package.json"
@@ -324,3 +393,26 @@ def get_dependencies(path: Path) -> List[Dict[str, str]]:
                 pass
 
     return deps
+
+def read_main_files(path: Path, min_lines=50, max_lines=300) -> list[dict]:
+    files = []
+
+    for file in path.rglob("*"):
+        if file.is_dir():
+            continue
+        if should_ignore(file):
+            continue
+        if is_in_ignored_dir(file, path):
+            continue
+        if file.suffix not in READABLE_EXTENSIONS:
+            continue
+
+        lines = read_text_safe(file).splitlines()
+
+        if min_lines <= len(lines) <= max_lines:
+            files.append({"name": str(file.relative_to(path)), "content": "\n".join(lines)})
+        elif len(lines) > max_lines:
+            truncated = lines[:max_lines] + [f"... ({len(lines) - max_lines} more lines truncated)"]
+            files.append({"name": str(file.relative_to(path)), "content": "\n".join(truncated)})
+
+    return files
