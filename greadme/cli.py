@@ -14,9 +14,13 @@ def handle_gen(args):
     # CLI overrides config
     lang = args.lang or config["general"]["lang"]
     api_key = config["ai"]["api_key"]
+    github_user = config["general"]["github_user"]
 
     if not api_key:
         print("Error: api_key not set. Run: greadme config set ai.api_key <key>")
+        return
+    if not github_user:
+        print("Error: github_user not set. Run: greadme config set general.github_user <key>")
         return
     
     args.output = args.path / "README.md"
@@ -29,17 +33,15 @@ def handle_gen(args):
     print(context["structure"])
     print(context["type"])
     print(context["dependencies"])
-    # for file in context["files"]:
-    #     print(f"\n--- {file['name']} ---")
-    #     print(file["content"])
-
-    context.update({"language": args.lang})
+    
+    context.update({"language": args.lang, "github_user": args.github_user})
 
     print("Montando o prompt...") #builder.py
-
-    builder.build(context, args.lang)
+    prompt = builder.build(context, args.lang)
 
     print("Chamando a IA...") #ai.py
+
+
     print("README gerado com sucesso!")
 
 
@@ -88,13 +90,14 @@ def main():
     cfg_show = cfg_sub.add_parser("show", help="Show current config")
 
     cfg_set = cfg_sub.add_parser("set", help="Set a config value")
-    cfg_set.add_argument("key", help="Key in format section.key (ex: general.lang)")
+    cfg_set.add_argument("key", help="Key to be set (e.g., 'general.lang')")
     cfg_set.add_argument("value", help="Value to set")
 
     config = load_config()
 
-    parser.add_argument("--lang", "-l", choices=["pt", "en"], default=config["general"]["lang"], help="README language (default: pt)")
-    parser.add_argument("--api-key", default=config["ai"]["api_key"],)
+    gen.add_argument("--lang", "-l", choices=["pt", "en"], default=config["general"]["lang"], help="README language (default: en)")
+    gen.add_argument("--api-key", default=config["ai"]["api_key"])
+    gen.add_argument("--github_user", default=config["general"]["github_user"])
     
     args = parser.parse_args()
 
