@@ -133,7 +133,7 @@ def scan(path: Path) -> dict:
         "files": read_main_files(path),
         "project_name": get_project_name(),
         "repository_name": get_repository_name(),
-        # "description": get_description(path) 
+        "description": get_description()
     }
 
 def load_gitignore_into_ignores(root: Path) -> None:
@@ -196,6 +196,10 @@ def get_repository_name() -> str:
     repo_name = str(input("Whats is the name of repository? "))
     repo_name = repo_name.replace(" ","-").lower()
     return repo_name
+
+def get_description() -> str:
+    desc = str(input("Write a short description of the project: "))
+    return desc
 
 def get_name(path: Path) -> str:
     return path.resolve().name

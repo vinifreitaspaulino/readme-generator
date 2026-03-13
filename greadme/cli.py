@@ -1,7 +1,7 @@
 import argparse
 import sys
 from pathlib import Path    
-from greadme import scanner
+from greadme import scanner, builder
 from greadme.config import load_config, save_config
 
 def log(msg, verbose):
@@ -26,7 +26,6 @@ def handle_gen(args):
     print("Varrendo projeto...") #scanner.py
     context = scanner.scan(args.path)
 
-    
     print(context["structure"])
     print(context["type"])
     print(context["dependencies"])
@@ -34,7 +33,12 @@ def handle_gen(args):
     #     print(f"\n--- {file['name']} ---")
     #     print(file["content"])
 
+    context.update({"language": args.lang})
+
     print("Montando o prompt...") #builder.py
+
+    builder.build(context, args.lang)
+
     print("Chamando a IA...") #ai.py
     print("README gerado com sucesso!")
 
