@@ -131,6 +131,8 @@ def scan(path: Path) -> dict:
         "structure": get_tree(path),
         "dependencies": get_dependencies(path),
         "files": read_main_files(path),
+        "project_name": get_project_name(),
+        "repository_name": get_repository_name(),
         # "description": get_description(path) 
     }
 
@@ -186,6 +188,15 @@ def read_text_safe(file: Path) -> str:
             continue
     return ""
 
+def get_project_name() -> str:
+    name = str(input("What is the name of your project? "))
+    return name
+
+def get_repository_name() -> str:
+    repo_name = str(input("Whats is the name of repository? "))
+    repo_name = repo_name.replace(" ","-").lower()
+    return repo_name
+
 def get_name(path: Path) -> str:
     return path.resolve().name
 
@@ -200,7 +211,7 @@ def get_tree(path: Path, prefix: str = "") -> str:
             lines.append(get_tree(item, prefix + "  "))
     return "\n".join(lines)
 
-def get_project_type(path: Path) -> str:
+def get_project_type(path: Path, no_input: bool = False) -> str:
     path = path.resolve()
 
     if (path / "package.json").exists():
@@ -221,11 +232,14 @@ def get_project_type(path: Path) -> str:
         return "go"
     if ((path / "pyproject.toml").exists() or (path / "setup.py").exists() or (path / "setup.cfg").exists() or (path / "requirements.txt").exists() or any(path.glob("*.py"))):
         return "python"
-
-    return "unknown"
+    if no_input:
+        return "unknown"
+    
+    project_type = str(input("What is the primary language of the project? "))
+    return project_type
 
 def get_dependencies(path: Path) -> List[Dict[str, str]]:
-    project_type = get_project_type(path)
+    project_type = get_project_type(path, True)
     path = path.resolve()
     deps: List[Dict[str, str]] = []
 
