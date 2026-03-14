@@ -1,7 +1,7 @@
 import argparse
 import sys
 from pathlib import Path    
-from greadme import scanner, builder
+from greadme import scanner, builder, ai
 from greadme.config import load_config, save_config
 
 def log(msg, verbose):
@@ -40,10 +40,16 @@ def handle_gen(args):
     prompt = builder.build(context, args.lang)
 
     print("Chamando a IA...") #ai.py
+    response = ai.gemini(prompt, args.model, args.api_key)
+ 
+    if args.output is None:
+        readme_path = args.path / f"README.md"
+    else:
+        readme_path = args.output.resolve()
+    with open(readme_path, "w", encoding="utf-8") as f:
+        f.write(response)
 
-
-    print("README gerado com sucesso!")
-
+    print(f"Sucess! File {readme_path} created.")
 
 def handle_config_show():
     config = load_config()
@@ -97,6 +103,7 @@ def main():
 
     gen.add_argument("--lang", "-l", choices=["pt", "en"], default=config["general"]["lang"], help="README language (default: en)")
     gen.add_argument("--api-key", default=config["ai"]["api_key"])
+    gen.add_argument("--model", default=config["ai"]["model"])
     gen.add_argument("--github_user", default=config["general"]["github_user"])
     
     args = parser.parse_args()
