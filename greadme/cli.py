@@ -4,6 +4,16 @@ from pathlib import Path
 from greadme import scanner, builder, ai
 from greadme.config import load_config, save_config
 
+BANNER = """
+                       _           
+  __ _ _ _ ___ __ _ __| |_ __  ___ 
+ / _` | '_/ -_) _` / _` | '  \/ -_)
+ \__, |_| \___\__,_\__,_|_|_|_\___|
+ |___/                                                      
+
+greadme v0.1.0                                                        
+"""
+
 def log(msg, verbose):
     if verbose:
         print(msg)
@@ -75,8 +85,19 @@ def handle_config_set(key: str, value: str):
     print(f"√ {key} = {value}")
 
 def main():
+    if (sys.argv[1:]) == []:
+            print(BANNER)
+            print("greadme - Generates README files using AI in the terminal")
+            print("\nUsage:")
+            print("  greadme ./your-project        Generate README")
+            print("  greadme config show           Show current config")
+            print("  greadme config set ai.api_key <KEY> Set API key")
+            print("\nRun greadme --help for more information.")
+            return
+
     if len(sys.argv) > 1 and not sys.argv[1].startswith("-") and sys.argv[1] not in ("gen", "config"):
         sys.argv.insert(1, "gen")
+    
     parser = argparse.ArgumentParser(prog="greadme")
     subparsers = parser.add_subparsers(dest="command")
 
@@ -99,9 +120,9 @@ def main():
     config = load_config()
 
     gen.add_argument("--lang", "-l", choices=["pt", "en"], default=config["general"]["lang"], help="README language (default: en)")
-    gen.add_argument("--api-key", default=config["ai"]["api_key"])
-    gen.add_argument("--model", default=config["ai"]["model"])
-    gen.add_argument("--github_user", default=config["general"]["github_user"])
+    gen.add_argument("--api-key", default=config["ai"]["api_key"], help="AI api-key")
+    gen.add_argument("--model", default=config["ai"]["model"], help="AI model (default: gemini-2.5-flash)")
+    gen.add_argument("--github_user", default=config["general"]["github_user"], help="Your GitHub user")
     
     args = parser.parse_args()
 
