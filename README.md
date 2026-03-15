@@ -44,7 +44,7 @@ At its core, the project operates by scanning a target directory to understand i
 The `README Generator` stands out by providing an intelligent, automated solution to documentation generation, significantly reducing the manual effort involved. Its ability to infer crucial project details directly from the source code, coupled with support for multiple output languages and integration with `.gitignore` rules, ensures that the generated documentation is not only rich in detail but also relevant and concise. This approach minimizes setup time and maximizes productivity for developers looking to present their projects professionally.
 
 ### Project Demonstration
-
+![Demo](assets/demo.png)
 
 ## Key Features
 
