@@ -25,21 +25,18 @@ def handle_gen(args):
     
     args.output = args.path / "README.md"
 
-    log(f"Projeto: {args.path}, idioma: {args.lang}, api-key: {args.api_key}, saída: {args.output}", args.verbose)
+    log(f"Project: {args.path}, lang: {args.lang}, model: {args.model} output: {args.output}", args.verbose)
 
-    print("Varrendo projeto...") #scanner.py
+    log("Analyzing the project...", args.verbose) #scanner.py
     context = scanner.scan(args.path)
-
-    print(context["structure"])
-    print(context["type"])
-    print(context["dependencies"])
     
     context.update({"language": args.lang, "github_user": args.github_user})
 
-    print("Montando o prompt...") #builder.py
+    log("Building prompt...", args.verbose) #builder.py
     prompt = builder.build(context, args.lang)
+    log(prompt, args.verbose)
 
-    print("Chamando a IA...") #ai.py
+    print("Sending to the IA...") #ai.py
     response = ai.gemini(prompt, args.model, args.api_key)
  
     if args.output is None:
