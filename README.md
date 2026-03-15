@@ -8,6 +8,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://github.com/vinifreitaspaulino/readme-generator/blob/main/LICENSE)
 [![Last Commit](https://img.shields.io/github/last-commit/vinifreitaspaulino/readme-generator?style=flat-square)](https://github.com/vinifreitaspaulino/readme-generator/commits/main)
 [![Top Language](https://img.shields.io/github/languages/top/vinifreitaspaulino/readme-generator?style=flat-square)](https://github.com/vinifreitaspaulino/readme-generator)
+[![PyPI](https://img.shields.io/pypi/v/greadme)](https://pypi.org/project/greadme)
+[![Python](https://img.shields.io/pypi/pyversions/greadme)](https://pypi.org/project/greadme)
 
 ## Table of Contents
 
