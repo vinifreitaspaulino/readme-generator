@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "greadme"
-version = "0.1.1"
+version = "0.1.2"
 description = "Generate README files using AI"
 authors = ["Vinicius de Freitas Paulino <vinifreitaspaulino@gmail.com>"]
 readme = "README.md"

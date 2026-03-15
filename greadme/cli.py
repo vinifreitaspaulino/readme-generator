@@ -3,16 +3,7 @@ import sys
 from pathlib import Path    
 from greadme import scanner, builder, ai
 from greadme.config import load_config, save_config
-
-BANNER = """
-                       _           
-  __ _ _ _ ___ __ _ __| |_ __  ___ 
- / _` | '_/ -_) _` / _` | '  \/ -_)
- \__, |_| \___\__,_\__,_|_|_|_\___|
- |___/                                                      
-
-greadme v0.1.0                                                        
-"""
+from importlib.metadata import version
 
 def log(msg, verbose):
     if verbose:
@@ -85,6 +76,16 @@ def handle_config_set(key: str, value: str):
     print(f"√ {key} = {value}")
 
 def main():
+    ver = version("greadme")
+    BANNER = f"""
+                       _           
+  __ _ _ _ ___ __ _ __| |_ __  ___ 
+ / _` | '_/ -_) _` / _` | '  \/ -_)
+ \__, |_| \___\__,_\__,_|_|_|_\___|
+ |___/                                                      
+
+greadme v{ver:<23}                                                     
+"""
     if (sys.argv[1:]) == []:
             print(BANNER)
             print("greadme - Generates README files using AI in the terminal")
