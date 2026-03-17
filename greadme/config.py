@@ -5,11 +5,20 @@ from pathlib import Path
 DEFAULT_CONFIG = {
     "general": {
         "lang": "en",
+        "provider": "gemini",
         "github_user": "",
     },
-    "ai": {
+    "gemini": {
         "api_key": "",
         "model": "gemini-2.5-flash",
+    },
+    "groq": {
+        "api_key": "",
+        "model": "llama-3.3-70b-versatile"
+    },
+    "openai": {
+        "api_key": "",
+        "model": "gpt-5.4-mini"
     }
 }
 
@@ -29,10 +38,17 @@ def create_default_config() -> None:
             f.write(
                 '[general]\n'
                 'lang = "en"\n'
+                'provider = "gemini"\n'
                 'github_user = ""\n\n'
-                '[ai]\n'
+                '[gemini]\n'
                 'api_key = ""\n'
-                'model = "gemini-2.5-flash"\n'
+                'model = "gemini-2.5-flash"\n\n'
+                '[groq]\n'
+                'api_key = ""\n'
+                'model = "llama-3.3-70b-versatile"\n\n'
+                '[openai]\n'
+                'api_key = ""\n'
+                'model = "gpt-5.4-mini"\n\n'
             )
 
 def load_config() -> dict:

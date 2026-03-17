@@ -14,7 +14,9 @@ def handle_gen(args):
 
     # CLI overrides config
     lang = args.lang or config["general"]["lang"]
-    api_key = config["ai"]["api_key"]
+    provider = str(args.provider or config["general"]["provider"]).strip().lower()
+
+    api_key = args.api_key or config[provider]["api_key"]
     github_user = config["general"]["github_user"]
 
     if not api_key:
@@ -26,7 +28,7 @@ def handle_gen(args):
     
     args.output = args.path / "README.md"
 
-    log(f"Project: {args.path}, lang: {args.lang}, model: {args.model} output: {args.output}", args.verbose)
+    log(f"Project: {args.path}, lang: {args.lang}, provider: {args.provider}, model: {args.model} output: {args.output}", args.verbose)
 
     log("Analyzing the project...", args.verbose) #scanner.py
     context = scanner.scan(args.path)
@@ -37,7 +39,7 @@ def handle_gen(args):
     prompt = builder.build(context, args.lang)
 
     print("Sending to the IA...") #ai.py
-    response_text, total_tokens = ai.gemini(prompt, args.model, args.api_key)
+    response_text, total_tokens = ai.ai_api(provider, prompt, args.model, args.api_key)
     log(response_text, args.verbose)
     log(f"Total number of tokens: {total_tokens}", args.verbose)
  
@@ -91,9 +93,10 @@ greadme v{ver:<23}
             print(BANNER)
             print("greadme - Generates README files using AI in the terminal")
             print("\nUsage:")
-            print("  greadme ./your-project        Generate README")
-            print("  greadme config show           Show current config")
-            print("  greadme config set ai.api_key <KEY> Set API key")
+            print("  greadme ./your-project                         Generate README")
+            print("  greadme config show                            Show current config")
+            print("  greadme config set general.provider <PROVIDER> Set provider")
+            print("  greadme config set <PROVIDER>.api_key <KEY>    Set API key")
             print("\nRun greadme --help for more information.")
             return
 
@@ -122,9 +125,18 @@ greadme v{ver:<23}
     config = load_config()
 
     gen.add_argument("--lang", "-l", choices=["pt", "en"], default=config["general"]["lang"], help="README language (default: en)")
-    gen.add_argument("--api-key", default=config["ai"]["api_key"], help="AI api-key")
-    gen.add_argument("--model", default=config["ai"]["model"], help="AI model (default: gemini-2.5-flash)")
     gen.add_argument("--github_user", default=config["general"]["github_user"], help="Your GitHub user")
+    gen.add_argument("--provider", "-p", choices=["gemini", "groq", "opneai"], default=config["general"]["provider"], help="Which provider is your LLM model (gemini, groq or openai?) (default: gemini)")
+    provider = str(args.provider or config["general"]["provider"]).strip().lower()
+    if not provider:
+        print("Error: provider not set. Run: greadme config set general.provider <provider>")
+        return
+    if provider != "gemini" or provider != "groq" or provider != "openai":
+        print(f"Error: unknown provider. It must be one of these: gemini, groq, or openai")
+        return
+
+    gen.add_argument("--api-key", default=config[provider]["api_key"], help="AI api-key")
+    gen.add_argument("--model", default=config[provider]["model"], help="AI model (default: gemini: gemini-2.5-flash, groq: llama-3.3-70b-versatile, openai: gpt-5.4-mini)")
     
     args = parser.parse_args()
 
