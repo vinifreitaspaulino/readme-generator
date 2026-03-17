@@ -8,4 +8,4 @@ def gemini(prompt: str, model: str, api_key: str) -> str:
         contents=prompt
     )
     
-    return response.text.strip()
+    return response.text.strip(), response.usage_metadata.total_token_count

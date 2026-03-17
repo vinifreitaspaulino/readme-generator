@@ -35,17 +35,18 @@ def handle_gen(args):
 
     log("Building prompt...", args.verbose) #builder.py
     prompt = builder.build(context, args.lang)
-    log(prompt, args.verbose)
 
     print("Sending to the IA...") #ai.py
-    response = ai.gemini(prompt, args.model, args.api_key)
+    response_text, total_tokens = ai.gemini(prompt, args.model, args.api_key)
+    log(response_text, args.verbose)
+    log(f"Total number of tokens: {total_tokens}", args.verbose)
  
     if args.output is None:
         readme_path = args.path / f"README.md"
     else:
         readme_path = args.output.resolve()
     with open(readme_path, "w", encoding="utf-8") as f:
-        f.write(response)
+        f.write(response_text)
 
     print(f"Sucess! File {readme_path} created.")
 
