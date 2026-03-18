@@ -33,6 +33,9 @@
     - [Configuration File Options](#configuration-file-options)
     - [Command-Line Arguments (`greadme gen` subcommand)](#command-line-arguments-greadme-gen-subcommand)
   - [Author](#author)
+
+
+
   - [License](#license)
 
 ## Overview
@@ -47,6 +50,12 @@ The `README Generator` stands out by providing an intelligent, automated solutio
 
 ### Project Demonstration
 ![Demo](assets/demo.png)
+ 
+
+https://github.com/user-attachments/assets/ca0b318d-e653-4aff-a1f4-bffcf21b54b4
+
+https://github.com/user-attachments/assets/00c6d8ce-5614-48cd-bf5a-10f6aa77de5c
+
 
 ## Key Features
 
