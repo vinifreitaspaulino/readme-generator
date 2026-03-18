@@ -270,7 +270,7 @@ provider = "gemini"
 github_user = "vinifreitaspaulino"
 
 [gemini]
-api_key = "GEMINI_API_KEY
+api_key = "GEMINI_API_KEY"
 model = "gemini-2.5-flash"
 
 [groq]
