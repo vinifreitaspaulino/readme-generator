@@ -17,18 +17,28 @@ def handle_gen(args):
     provider = str(args.provider or config["general"]["provider"]).strip().lower()
 
     api_key = args.api_key or config[provider]["api_key"]
+    model = args.model or config[provider]["model"]
     github_user = config["general"]["github_user"]
 
+    if api_key is None:
+        api_key = config[provider]["api_key"]
     if not api_key:
-        print("Error: api_key not set. Run: greadme config set ai.api_key <key>")
+        print("Error: api_key not set. Run: greadme config set <provider>.api_key <key>")
         return
+    
+    if model is None:
+        model = config[provider]["model"]
+    if not model:
+        print("Error: model not set. Run: greadme config set <provider>.model <key>")
+        return
+    
     if not github_user:
         print("Error: github_user not set. Run: greadme config set general.github_user <key>")
         return
     
     args.output = args.path / "README.md"
 
-    log(f"Project: {args.path}, lang: {args.lang}, provider: {args.provider}, model: {args.model} output: {args.output}", args.verbose)
+    log(f"Project: {args.path}, lang: {args.lang}, provider: {provider}, model: {model} output: {args.output}", args.verbose)
 
     log("Analyzing the project...", args.verbose) #scanner.py
     context = scanner.scan(args.path)
@@ -39,7 +49,7 @@ def handle_gen(args):
     prompt = builder.build(context, args.lang)
 
     print("Sending to the IA...") #ai.py
-    response_text, total_tokens = ai.ai_api(provider, prompt, args.model, args.api_key)
+    response_text, total_tokens = ai.ai_api(provider, prompt, model, args.api_key)
     log(response_text, args.verbose)
     log(f"Total number of tokens: {total_tokens}", args.verbose)
  
@@ -76,7 +86,7 @@ def handle_config_set(key: str, value: str):
 
     config[section][field] = value
     save_config(config)
-    print(f"√ {key} = {value}")
+    print(f"✅ {key} = {value}")
 
 def main():
     ver = version("greadme")
@@ -127,18 +137,12 @@ greadme v{ver:<23}
     gen.add_argument("--lang", "-l", choices=["pt", "en"], default=config["general"]["lang"], help="README language (default: en)")
     gen.add_argument("--github_user", default=config["general"]["github_user"], help="Your GitHub user")
     gen.add_argument("--provider", "-p", choices=["gemini", "groq", "opneai"], default=config["general"]["provider"], help="Which provider is your LLM model (gemini, groq or openai?) (default: gemini)")
-    provider = str(args.provider or config["general"]["provider"]).strip().lower()
-    if not provider:
-        print("Error: provider not set. Run: greadme config set general.provider <provider>")
-        return
-    if provider != "gemini" or provider != "groq" or provider != "openai":
-        print(f"Error: unknown provider. It must be one of these: gemini, groq, or openai")
-        return
 
-    gen.add_argument("--api-key", default=config[provider]["api_key"], help="AI api-key")
-    gen.add_argument("--model", default=config[provider]["model"], help="AI model (default: gemini: gemini-2.5-flash, groq: llama-3.3-70b-versatile, openai: gpt-5.4-mini)")
+    gen.add_argument("--api-key", default=None, help="AI api-key")
+    gen.add_argument("--model", default=None, help="AI model (default: gemini: gemini-2.5-flash, groq: llama-3.3-70b-versatile, openai: gpt-5.4-mini)")
     
     args = parser.parse_args()
+
 
     if args.command == "config":
         if args.config_command == "show":
@@ -148,5 +152,13 @@ greadme v{ver:<23}
     elif args.command == "gen":
         handle_gen(args)
 
+    provider = str(args.provider or config["general"]["provider"]).strip().lower()
+    if not provider:
+        print("Error: provider not set. Run: greadme config set general.provider <provider>")
+        return
+    if provider != "gemini" or provider != "groq" or provider != "openai":
+        print(f"Error: unknown provider. It must be one of these: gemini, groq, or openai")
+        return
+    
 if __name__ == "__main__":
     main()
