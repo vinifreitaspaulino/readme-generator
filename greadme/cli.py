@@ -48,18 +48,18 @@ def handle_gen(args):
 
     log(f"Project: {args.path}, lang: {args.lang}, provider: {provider}, model: {model} output: {args.output}", args.verbose)
 
-    log("Analyzing the project...", args.verbose) #scanner.py
+    log("\033[1;94mAnalyzing the project...\033[0m", args.verbose) #scanner.py
     context = scanner.scan(args.path)
     
     context.update({"language": args.lang, "github_user": args.github_user})
 
-    log("Building prompt...", args.verbose) #builder.py
+    log("\033[1;94mBuilding prompt...\033[0m", args.verbose) #builder.py
     prompt = builder.build(context, args.lang)
 
-    print("Sending to the IA...") #ai.py
+    print("\033[1;94mSending to the IA...\033[0m") #ai.py
     response_text, total_tokens = ai.ai_api(provider, prompt, model, api_key)
     log(response_text, args.verbose)
-    log(f"Total number of tokens: {total_tokens}", args.verbose)
+    log(f"\033[32mTotal number of tokens: \033[0m{total_tokens}", args.verbose)
  
     if args.output is None:
         readme_path = args.path / f"README.md"
@@ -68,7 +68,7 @@ def handle_gen(args):
     with open(readme_path, "w", encoding="utf-8") as f:
         f.write(response_text)
 
-    print(f"Sucess! File {readme_path} created.")
+    print(f"\033[32mSucess! File {readme_path} created.\033[0m")
 
 def handle_config_show():
     config = load_config()
@@ -98,24 +98,21 @@ def handle_config_set(key: str, value: str):
 
 def main():
     ver = version("greadme")
-    BANNER = rf"""
-                       _           
+    BANNER = rf"""                       _           
   __ _ _ _ ___ __ _ __| |_ __  ___ 
  / _` | '_/ -_) _` / _` | '  \/ -_)
  \__, |_| \___\__,_\__,_|_|_|_\___|
- |___/                                                      
+ |___/               """ + f"\033[34mv{ver:<23}\033[0m"                                                     
 
-greadme v{ver:<23}                                                     
-"""
     if (sys.argv[1:]) == []:
             print(BANNER)
-            print("greadme - Generates README files using AI in the terminal")
-            print("\nUsage:")
+            print("\033[1;34mgreadme - Generates README files using AI in the terminal")
+            print("\n\033[90mUsage:")
             print("  greadme ./your-project                         Generate README")
             print("  greadme config show                            Show current config")
             print("  greadme config set general.provider <PROVIDER> Set provider")
-            print("  greadme config set <PROVIDER>.api_key <KEY>    Set API key")
-            print("\nRun greadme --help for more information.")
+            print("  greadme config set <PROVIDER>.api_key <KEY>    Set API key\033[0m")
+            print("\n\033[33mRun greadme --help for more information.\033[0m")
             return
 
     if len(sys.argv) > 1 and not sys.argv[1].startswith("-") and sys.argv[1] not in ("gen", "config"):
