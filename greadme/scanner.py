@@ -189,16 +189,16 @@ def read_text_safe(file: Path) -> str:
     return ""
 
 def get_project_name() -> str:
-    name = str(input("What is the name of your project? "))
+    name = str(input("\033[34mWhat is the name of your project? \033[0m"))
     return name
 
 def get_repository_name() -> str:
-    repo_name = str(input("Whats is the name of repository? "))
+    repo_name = str(input("\033[34mWhats is the name of repository? \033[0m"))
     repo_name = repo_name.replace(" ","-").lower()
     return repo_name
 
 def get_description() -> str:
-    desc = str(input("Write a short description of the project: "))
+    desc = str(input("\033[34mWrite a short description of the project: \033[0m"))
     return desc
 
 def get_name(path: Path) -> str:

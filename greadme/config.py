@@ -5,13 +5,32 @@ from pathlib import Path
 DEFAULT_CONFIG = {
     "general": {
         "lang": "en",
+        "provider": "gemini",
         "github_user": "",
     },
-    "ai": {
+    "gemini": {
         "api_key": "",
         "model": "gemini-2.5-flash",
+    },
+    "groq": {
+        "api_key": "",
+        "model": "meta-llama/llama-4-scout-17b-16e-instruct"
+    },
+    "openai": {
+        "api_key": "",
+        "model": "gpt-5.4-mini"
     }
 }
+
+def migrate_config(data: dict) -> dict:
+    if "ai" in data:
+        old_ai = data.pop("ai")
+        if "gemini" not in data:
+            data["gemini"] = {}
+            data["general"]["provider"] = "gemini"
+        data["gemini"]["api_key"] = old_ai.get("api_key", "")
+        data["gemini"]["model"] = old_ai.get("model", DEFAULT_CONFIG["gemini"]["model"])
+    return data
 
 def get_config_path() -> Path:
     if os.name == "nt":
@@ -29,10 +48,17 @@ def create_default_config() -> None:
             f.write(
                 '[general]\n'
                 'lang = "en"\n'
+                'provider = "gemini"\n'
                 'github_user = ""\n\n'
-                '[ai]\n'
+                '[gemini]\n'
                 'api_key = ""\n'
-                'model = "gemini-2.5-flash"\n'
+                'model = "gemini-2.5-flash"\n\n'
+                '[groq]\n'
+                'api_key = ""\n'
+                'model = "meta-llama/llama-4-scout-17b-16e-instruct"\n\n'
+                '[openai]\n'
+                'api_key = ""\n'
+                'model = "gpt-5.4-mini"\n\n'
             )
 
 def load_config() -> dict:
@@ -40,11 +66,16 @@ def load_config() -> dict:
     if not path.exists():
         create_default_config()
         return DEFAULT_CONFIG
+    
     with open(path, "rb") as f:
         data = tomllib.load(f)
-    config = DEFAULT_CONFIG.copy()
-    for section, values in data.items():
-        config[section].update(values)
+    data = migrate_config(data)
+
+    config = {}
+    for section, defaults in DEFAULT_CONFIG.items():
+        config[section] = defaults.copy()
+        if section in data:
+            config[section].update(data[section])
     return config
 
 def save_config(config: dict) -> None:

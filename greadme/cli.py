@@ -14,40 +14,61 @@ def handle_gen(args):
 
     # CLI overrides config
     lang = args.lang or config["general"]["lang"]
-    api_key = config["ai"]["api_key"]
+
+    provider = args.provider or config["general"]["provider"]
+    provider = provider.strip().lower()
+    if not provider:
+        print("Error: provider not set. Run: greadme config set general.provider <provider>")
+        return
+    if provider not in ("gemini", "groq", "openai"):
+        print(f"Error: unknown provider '{provider}'. It must be one of these: gemini, groq, or openai")
+        return
+
+    api_key = args.api_key or config[provider]["api_key"]
+    model = args.model or config[provider]["model"]
     github_user = config["general"]["github_user"]
 
+    if api_key is None:
+        api_key = config[provider]["api_key"]
     if not api_key:
-        print("Error: api_key not set. Run: greadme config set ai.api_key <key>")
+        print("Error: api_key not set. Run: greadme config set <provider>.api_key <key>")
         return
+    
+    if model is None:
+        model = config[provider]["model"]
+    if not model:
+        print("Error: model not set. Run: greadme config set <provider>.model <key>")
+        return
+    
     if not github_user:
         print("Error: github_user not set. Run: greadme config set general.github_user <key>")
         return
     
     args.output = args.path / "README.md"
 
-    log(f"Project: {args.path}, lang: {args.lang}, model: {args.model} output: {args.output}", args.verbose)
+    log(f"Project: {args.path}, lang: {args.lang}, provider: {provider}, model: {model} output: {args.output}", args.verbose)
 
-    log("Analyzing the project...", args.verbose) #scanner.py
+    log("\033[1;94mAnalyzing the project...\033[0m", args.verbose) #scanner.py
     context = scanner.scan(args.path)
     
     context.update({"language": args.lang, "github_user": args.github_user})
 
-    log("Building prompt...", args.verbose) #builder.py
+    log("\033[1;94mBuilding prompt...\033[0m", args.verbose) #builder.py
     prompt = builder.build(context, args.lang)
-    log(prompt, args.verbose)
 
-    print("Sending to the IA...") #ai.py
-    response = ai.gemini(prompt, args.model, args.api_key)
+    print("\033[1;94mSending to the IA...\033[0m") #ai.py
+    response_text, total_tokens = ai.ai_api(provider, prompt, model, api_key)
+    log(response_text, args.verbose)
+    log(f"\033[32mTotal number of tokens: \033[0m{total_tokens}", args.verbose)
  
     if args.output is None:
         readme_path = args.path / f"README.md"
     else:
         readme_path = args.output.resolve()
     with open(readme_path, "w", encoding="utf-8") as f:
-        f.write(response)
+        f.write(response_text)
 
-    print(f"Sucess! File {readme_path} created.")
+    print(f"\033[32mSucess! File {readme_path} created.\033[0m")
 
 def handle_config_show():
     config = load_config()
@@ -73,27 +94,25 @@ def handle_config_set(key: str, value: str):
 
     config[section][field] = value
     save_config(config)
-    print(f"√ {key} = {value}")
+    print(f"✅ {key} = {value}")
 
 def main():
     ver = version("greadme")
-    BANNER = f"""
-                       _           
+    BANNER = rf"""                       _           
   __ _ _ _ ___ __ _ __| |_ __  ___ 
  / _` | '_/ -_) _` / _` | '  \/ -_)
  \__, |_| \___\__,_\__,_|_|_|_\___|
- |___/                                                      
+ |___/               """ + f"\033[34mv{ver:<23}\033[0m"                                                     
 
-greadme v{ver:<23}                                                     
-"""
     if (sys.argv[1:]) == []:
             print(BANNER)
-            print("greadme - Generates README files using AI in the terminal")
-            print("\nUsage:")
-            print("  greadme ./your-project        Generate README")
-            print("  greadme config show           Show current config")
-            print("  greadme config set ai.api_key <KEY> Set API key")
-            print("\nRun greadme --help for more information.")
+            print("\033[1;34mgreadme - Generates README files using AI in the terminal")
+            print("\n\033[90mUsage:")
+            print("  greadme ./your-project                         Generate README")
+            print("  greadme config show                            Show current config")
+            print("  greadme config set general.provider <PROVIDER> Set provider")
+            print("  greadme config set <PROVIDER>.api_key <KEY>    Set API key\033[0m")
+            print("\n\033[33mRun greadme --help for more information.\033[0m")
             return
 
     if len(sys.argv) > 1 and not sys.argv[1].startswith("-") and sys.argv[1] not in ("gen", "config"):
@@ -121,11 +140,14 @@ greadme v{ver:<23}
     config = load_config()
 
     gen.add_argument("--lang", "-l", choices=["pt", "en"], default=config["general"]["lang"], help="README language (default: en)")
-    gen.add_argument("--api-key", default=config["ai"]["api_key"], help="AI api-key")
-    gen.add_argument("--model", default=config["ai"]["model"], help="AI model (default: gemini-2.5-flash)")
     gen.add_argument("--github_user", default=config["general"]["github_user"], help="Your GitHub user")
+    gen.add_argument("--provider", "-p", choices=["gemini", "groq", "openai"], default=config["general"]["provider"], help="Which provider is your LLM model (gemini, groq or openai?) (default: gemini)")
+
+    gen.add_argument("--api-key", default=None, help="AI api-key")
+    gen.add_argument("--model", default=None, help="AI model (default: gemini: gemini-2.5-flash, groq: llama-3.3-70b-versatile, openai: gpt-5.4-mini)")
     
     args = parser.parse_args()
+
 
     if args.command == "config":
         if args.config_command == "show":
@@ -135,5 +157,7 @@ greadme v{ver:<23}
     elif args.command == "gen":
         handle_gen(args)
 
+
+    
 if __name__ == "__main__":
     main()
