@@ -14,7 +14,7 @@ DEFAULT_CONFIG = {
     },
     "groq": {
         "api_key": "",
-        "model": "llama-3.3-70b-versatile"
+        "model": "meta-llama/llama-4-scout-17b-16e-instruct"
     },
     "openai": {
         "api_key": "",
@@ -55,7 +55,7 @@ def create_default_config() -> None:
                 'model = "gemini-2.5-flash"\n\n'
                 '[groq]\n'
                 'api_key = ""\n'
-                'model = "llama-3.3-70b-versatile"\n\n'
+                'model = "meta-llama/llama-4-scout-17b-16e-instruct"\n\n'
                 '[openai]\n'
                 'api_key = ""\n'
                 'model = "gpt-5.4-mini"\n\n'

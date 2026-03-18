@@ -14,7 +14,15 @@ def handle_gen(args):
 
     # CLI overrides config
     lang = args.lang or config["general"]["lang"]
-    provider = str(args.provider or config["general"]["provider"]).strip().lower()
+
+    provider = args.provider or config["general"]["provider"]
+    provider = provider.strip().lower()
+    if not provider:
+        print("Error: provider not set. Run: greadme config set general.provider <provider>")
+        return
+    if provider not in ("gemini", "groq", "openai"):
+        print(f"Error: unknown provider '{provider}'. It must be one of these: gemini, groq, or openai")
+        return
 
     api_key = args.api_key or config[provider]["api_key"]
     model = args.model or config[provider]["model"]
@@ -49,7 +57,7 @@ def handle_gen(args):
     prompt = builder.build(context, args.lang)
 
     print("Sending to the IA...") #ai.py
-    response_text, total_tokens = ai.ai_api(provider, prompt, model, args.api_key)
+    response_text, total_tokens = ai.ai_api(provider, prompt, model, api_key)
     log(response_text, args.verbose)
     log(f"Total number of tokens: {total_tokens}", args.verbose)
  
@@ -90,7 +98,7 @@ def handle_config_set(key: str, value: str):
 
 def main():
     ver = version("greadme")
-    BANNER = f"""
+    BANNER = rf"""
                        _           
   __ _ _ _ ___ __ _ __| |_ __  ___ 
  / _` | '_/ -_) _` / _` | '  \/ -_)
@@ -136,7 +144,7 @@ greadme v{ver:<23}
 
     gen.add_argument("--lang", "-l", choices=["pt", "en"], default=config["general"]["lang"], help="README language (default: en)")
     gen.add_argument("--github_user", default=config["general"]["github_user"], help="Your GitHub user")
-    gen.add_argument("--provider", "-p", choices=["gemini", "groq", "opneai"], default=config["general"]["provider"], help="Which provider is your LLM model (gemini, groq or openai?) (default: gemini)")
+    gen.add_argument("--provider", "-p", choices=["gemini", "groq", "openai"], default=config["general"]["provider"], help="Which provider is your LLM model (gemini, groq or openai?) (default: gemini)")
 
     gen.add_argument("--api-key", default=None, help="AI api-key")
     gen.add_argument("--model", default=None, help="AI model (default: gemini: gemini-2.5-flash, groq: llama-3.3-70b-versatile, openai: gpt-5.4-mini)")
@@ -152,13 +160,7 @@ greadme v{ver:<23}
     elif args.command == "gen":
         handle_gen(args)
 
-    provider = str(args.provider or config["general"]["provider"]).strip().lower()
-    if not provider:
-        print("Error: provider not set. Run: greadme config set general.provider <provider>")
-        return
-    if provider != "gemini" or provider != "groq" or provider != "openai":
-        print(f"Error: unknown provider. It must be one of these: gemini, groq, or openai")
-        return
+
     
 if __name__ == "__main__":
     main()
